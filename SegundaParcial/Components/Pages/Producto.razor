@@ -1,0 +1,181 @@
+﻿@page "/products"
+@rendermode InteractiveServer
+@using MyBlazorApp.Models
+
+<h3>Gestión de Productos</h3>
+
+<div class="mb-3">
+    @if (!isEditing)
+    {
+        <h5>Agregar Producto</h5>
+    }
+    else
+    {
+        <h5>Editar Producto</h5>
+    }
+
+    <EditForm Model="@currentProduct" OnValidSubmit="@SaveProduct" FormName="ProductForm">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="form-group">
+            <label for="inventoryNumber">Número de Inventario</label>
+            <InputNumber id="inventoryNumber" class="form-control" @bind-Value="currentProduct.InventoryNumber" />
+            <ValidationMessage For="@(() => currentProduct.InventoryNumber)" />
+        </div>
+
+        <div class="form-group">
+            <label for="name">Nombre del Producto</label>
+            <InputText id="name" class="form-control" @bind-Value="currentProduct.Name" />
+            <ValidationMessage For="@(() => currentProduct.Name)" />
+        </div>
+
+        <div class="form-group">
+            <label for="department">Departamento</label>
+            <InputSelect id="department" class="form-control" @bind-Value="currentProduct.Department">
+                <option value="">Seleccionar...</option>
+                <option>Frutas</option>
+                <option>Verduras</option>
+                <option>Lácteos</option>
+            </InputSelect>
+            <ValidationMessage For="@(() => currentProduct.Department)" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">@((isEditing) ? "Actualizar" : "Guardar")</button>
+        @if (isEditing)
+        {
+            <button type="button" class="btn btn-secondary" @onclick="CancelEdit">Cancelar</button>
+        }
+    </EditForm>
+
+    <p class="text-danger">@errorMessage</p>
+</div>
+
+<h5>Lista de Productos</h5>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Número de Inventario</th>
+            <th>Nombre</th>
+            <th>Departamento</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var product in products)
+        {
+            <tr>
+                <td>@product.InventoryNumber</td>
+                <td>@product.Name</td>
+                <td>@product.Department</td>
+                <td>
+                    <button class="btn btn-warning" @onclick="() => EditProduct(product)">Editar</button>
+                    <button class="btn btn-danger" @onclick="() => DeleteProduct(product)">Eliminar</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<button class="btn btn-info" @onclick="ShowStockView">Existencias</button>
+
+@if (showStockView)
+{
+    <h5>Existencias por Departamento</h5>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Departamento</th>
+                <th>Total Productos</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Frutas</td>
+                <td>@products.Count(p => p.Department == "Frutas")</td>
+            </tr>
+            <tr>
+                <td>Verduras</td>
+                <td>@products.Count(p => p.Department == "Verduras")</td>
+            </tr>
+            <tr>
+                <td>Lácteos</td>
+                <td>@products.Count(p => p.Department == "Lácteos")</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <button class="btn btn-secondary" @onclick="ShowProductListView">Listado</button>
+}
+
+@code {
+    private List<Product> products = new List<Product>();
+    private Product currentProduct = new Product();
+    private bool isEditing = false;
+    private string errorMessage;
+    private bool showStockView = false;
+
+    private void SaveProduct()
+    {
+        if (products.Any(p => p.InventoryNumber == currentProduct.InventoryNumber && !isEditing))
+        {
+            errorMessage = "El número de inventario ya existe.";
+            return;
+        }
+
+        if (isEditing)
+        {
+            var productToUpdate = products.FirstOrDefault(p => p.InventoryNumber == currentProduct.InventoryNumber);
+            productToUpdate.Name = currentProduct.Name;
+            productToUpdate.Department = currentProduct.Department;
+            isEditing = false;
+        }
+        else
+        {
+            products.Add(new Product
+                {
+                    InventoryNumber = currentProduct.InventoryNumber,
+                    Name = currentProduct.Name,
+                    Department = currentProduct.Department
+                });
+        }
+
+        currentProduct = new Product();
+        errorMessage = string.Empty;
+        StateHasChanged();
+    }
+
+    private void EditProduct(Product product)
+    {
+        currentProduct = new Product
+            {
+                InventoryNumber = product.InventoryNumber,
+                Name = product.Name,
+                Department = product.Department
+            };
+        isEditing = true;
+    }
+
+    private void DeleteProduct(Product product)
+    {
+        products.Remove(product);
+        StateHasChanged();
+    }
+
+    private void CancelEdit()
+    {
+        currentProduct = new Product();
+        isEditing = false;
+        errorMessage = string.Empty;
+    }
+
+    private void ShowStockView()
+    {
+        showStockView = true;
+    }
+
+    private void ShowProductListView()
+    {
+        showStockView = false;
+    }
+}

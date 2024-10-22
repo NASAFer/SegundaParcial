@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="C:\Users\famez\Downloads\Class.cs" Link="Class.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="C:\Users\famez\Downloads\Producto.razor" Link="Producto.razor" />
+  </ItemGroup>
+
+</Project>
